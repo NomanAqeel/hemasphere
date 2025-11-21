@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# HemaSphere Web
 
-## Getting Started
+A Next.js-based dashboard for blood bank operations: inventory, requests, donors, appointments, and analytics.
 
-First, run the development server:
+## Tech Stack
+- Next.js 16 (App Router, Turbopack)
+- React 19 + TypeScript 5
+- Tailwind CSS v4
+- Icons: `lucide-react`
+- Radix UI primitives: `@radix-ui/react-dialog`, `@radix-ui/react-tooltip`, `@radix-ui/react-slot`, `@radix-ui/react-separator`
 
+## Prerequisites
+- Node.js 18+ (recommended 20)
+- npm (lockfile present: `package-lock.json`)
+
+## Quick Start
 ```bash
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# open http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Scripts
+- `npm run dev` – start dev server
+- `npm run build` – production build
+- `npm run start` – run built app
+- `npm run lint` – lint with ESLint
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Project Structure
+```
+src/
+  app/
+    dashboard/
+      analytics/
+        page.tsx
+      appointments/
+      donors/
+      emergency/
+      inventory/
+        manage/
+      requests/
+      users/
+      layout.tsx
+      page.tsx
+    login/
+    signup/
+    globals.css
+    layout.tsx
+  components/
+    layout/ (AppShell, AppHeader, AppSidebar)
+    ui/ (Card, Badge, StatCard, Alert, Toolbar, Tabs, Progress, StatusPill,
+         Input, Button, Modal, sidebar, sheet, tooltip, separator, skeleton)
+  hooks/ (use-mobile)
+  lib/ (utils)
+public/media (logos, images)
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## UI Components
+- `Card` – rounded panel container
+- `Badge` – status pill with variants: success, warning, danger, info, neutral
+- `StatCard` – metric tile with label, value, delta, accent color
+- `Toolbar`, `Tabs`, `Alert`, `Progress`, `StatusPill`, `Input`, `Button`, `Modal`
+- Sidebar system provided by `components/ui/sidebar`
 
-## Learn More
+## Analytics & Reports
+Implemented with inline SVG (no chart library):
+- Donation Trends – dual line chart (Donations vs Unique Donors)
+- Blood Type Distribution – donut chart using stroke-dash segments
+- Blood Usage by Category – stacked bar chart (Emergency, Routine, Surgery)
+- Demand Forecasting – actual vs predicted (dotted) line chart
+- Time Period dropdown – selectable: Last 7 days, 30 days, 3 months, 6 months, last year
 
-To learn more about Next.js, take a look at the following resources:
+## Styling & Theming
+- Tailwind CSS utility classes throughout
+- Theme tokens in `src/app/globals.css` for colors, radius, and chart palette
+- Light/dark support via `dark:` class variants
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deployment
+```bash
+npm run build
+npm start
+```
+- Any platform supporting Node.js can host the build (Vercel, Netlify, custom servers).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Contributing
+- Keep components simple, typed, and consistent with existing patterns
+- Prefer inline SVG for charts to avoid dependencies; introduce a chart library only if interactivity is needed
+- Run `npm run lint` before committing
+- Avoid committing secrets; use environment variables for configuration
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Developer Guide
+See `DEVELOPER_GUIDE.md` for architecture, conventions, and extension patterns.
