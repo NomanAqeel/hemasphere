@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import Toolbar from "@/components/ui/Toolbar";
@@ -8,9 +8,24 @@ import Alert from "@/components/ui/Alert";
 import StatCard from "@/components/ui/StatCard";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import Modal from "@/components/ui/Modal";
 
 export default function RequestsPage() {
   const [active, setActive] = useState("requests");
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({
+    request_title: "",
+    request_description: "Emergency",
+    hospital_location: "",
+    hospital_name: "",
+    doctor_name: "",
+    doctor_contact: "",
+    blood_group: "O+",
+    blood_units: "1",
+    priority: "Normal",
+    requested_at: "",
+    required_by: "",
+  });
   const summary = {
     pending: 1,
     urgent: 1,
@@ -23,7 +38,7 @@ export default function RequestsPage() {
     { key: "delivery", label: "Delivery Tracking" },
   ];
 
-  const rows = [
+  const [rows, setRows] = useState([
     {
       id: "REQ-001",
       title: "Emergency Surgery",
@@ -80,7 +95,7 @@ export default function RequestsPage() {
       requiredBy: "2024-02-21 10:00 AM",
       actions: ["View"],
     },
-  ] as const;
+  ]);
 
   const priorityBadge = (p: string) =>
     p === "Urgent"
@@ -96,9 +111,45 @@ export default function RequestsPage() {
       ? <Badge variant="success">Approved</Badge>
       : s === "Pending"
       ? <Badge variant="warning">Pending</Badge>
+      : s === "Rejected"
+      ? <Badge variant="danger">Rejected</Badge>
       : s === "In Transit"
       ? <Badge variant="info">In Transit</Badge>
       : <Badge variant="neutral">Under Review</Badge>;
+
+  const addRequest = () => {
+    const nextId = `REQ-${String(rows.length + 1).padStart(3, "0")}`;
+    const priority = form.priority === "Normal" ? "Medium" : form.priority; // normalize
+    const newRow = {
+      id: nextId,
+      title: form.request_title,
+      location: form.hospital_location,
+      hospital: form.hospital_name,
+      contact: `${form.doctor_name} • ${form.doctor_contact}`,
+      bloodType: form.blood_group,
+      units: Number(form.blood_units) || 0,
+      priority,
+      status: "Pending",
+      requestedAt: form.requested_at || "",
+      requiredBy: form.required_by || "",
+      actions: ["View"],
+    };
+    setRows([newRow, ...rows]);
+    setOpen(false);
+    setForm({
+      request_title: "",
+      request_description: "Emergency",
+      hospital_location: "",
+      hospital_name: "",
+      doctor_name: "",
+      doctor_contact: "",
+      blood_group: "O+",
+      blood_units: "1",
+      priority: "Normal",
+      requested_at: "",
+      required_by: "",
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -107,7 +158,7 @@ export default function RequestsPage() {
           <h1 className="text-2xl font-semibold">Request & Allocation</h1>
           <div className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">Manage blood requests from hospitals and track deliveries</div>
         </div>
-        <button className="rounded-md bg-red-600 px-4 py-2 text-sm text-white">New Request</button>
+        <button onClick={() => setOpen(true)} className="rounded-md bg-red-600 px-4 py-2 text-sm text-white">New Request</button>
       </div>
 
       <Alert variant="danger" title="1 urgent request(s) require immediate attention." />
@@ -243,6 +294,112 @@ export default function RequestsPage() {
           </div>
         </Card>
       )}
+
+      <Modal
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Request Details"
+        containerClassName="max-w-5xl"
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button onClick={addRequest}>Create Request</Button>
+          </div>
+        }
+      >
+        <div className="space-y-6">
+          <div>
+            <div className="text-sm font-semibold">Request Details</div>
+            <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <div className="text-xs font-semibold">Title</div>
+                <Input placeholder="request_title" value={form.request_title} onChange={(e)=>setForm({...form, request_title:e.target.value})} className="mt-1 h-10" />
+              </div>
+              <div>
+                <div className="text-xs font-semibold">Description</div>
+                <select className="mt-1 h-10 w-full rounded-md border border-zinc-200 bg-transparent px-3 text-sm dark:border-zinc-800" value={form.request_description} onChange={(e)=>setForm({...form, request_description:e.target.value})}>
+                  <option>Emergency</option>
+                  <option>Surgery</option>
+                  <option>Routine</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div className="text-sm font-semibold">Hospital & Contact</div>
+            <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <div className="text-xs font-semibold">Hospital Location</div>
+                <Input placeholder="hospital_location" value={form.hospital_location} onChange={(e)=>setForm({...form, hospital_location:e.target.value})} className="mt-1 h-10" />
+              </div>
+              <div>
+                <div className="text-xs font-semibold">Hospital Name</div>
+                <Input placeholder="hospital_name" value={form.hospital_name} onChange={(e)=>setForm({...form, hospital_name:e.target.value})} className="mt-1 h-10" />
+              </div>
+              <div>
+                <div className="text-xs font-semibold">Doctor Name</div>
+                <Input placeholder="doctor_name" value={form.doctor_name} onChange={(e)=>setForm({...form, doctor_name:e.target.value})} className="mt-1 h-10" />
+              </div>
+              <div>
+                <div className="text-xs font-semibold">Doctor Contact</div>
+                <Input placeholder="doctor_contact" value={form.doctor_contact} onChange={(e)=>setForm({...form, doctor_contact:e.target.value})} className="mt-1 h-10" />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div className="text-sm font-semibold">Blood Requirements</div>
+            <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <div className="text-xs font-semibold">Blood Group</div>
+                <select className="mt-1 h-10 w-full rounded-md border border-zinc-200 bg-transparent px-3 text-sm dark:border-zinc-800" value={form.blood_group} onChange={(e)=>setForm({...form, blood_group:e.target.value})}>
+                  <option>O+</option>
+                  <option>O-</option>
+                  <option>A+</option>
+                  <option>A-</option>
+                  <option>B+</option>
+                  <option>B-</option>
+                  <option>AB+</option>
+                  <option>AB-</option>
+                </select>
+              </div>
+              <div>
+                <div className="text-xs font-semibold">Units</div>
+                <Input type="number" min={1} placeholder="blood_units" value={form.blood_units} onChange={(e)=>setForm({...form, blood_units:e.target.value})} className="mt-1 h-10" />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div className="text-sm font-semibold">Priority</div>
+            <div className="mt-3 grid grid-cols-1 gap-4">
+              <div>
+                <div className="text-xs font-semibold">Priority</div>
+                <select className="mt-1 h-10 w-full rounded-md border border-zinc-200 bg-transparent px-3 text-sm dark:border-zinc-800" value={form.priority} onChange={(e)=>setForm({...form, priority:e.target.value})}>
+                  <option>Urgent</option>
+                  <option>High</option>
+                  <option>Normal</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div className="text-sm font-semibold">Dates</div>
+            <div className="mt-3 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <div className="text-xs font-semibold">Requested At</div>
+                <Input type="datetime-local" value={form.requested_at} onChange={(e)=>setForm({...form, requested_at:e.target.value})} className="mt-1 h-10" />
+              </div>
+              <div>
+                <div className="text-xs font-semibold">Required By</div>
+                <Input type="datetime-local" value={form.required_by} onChange={(e)=>setForm({...form, required_by:e.target.value})} className="mt-1 h-10" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
